@@ -2,8 +2,8 @@
 # Date          2021-08-07
 # Revised       2021-08-07
 # Variant       01.0
-# Filename      Madlad_Grapher_Template.py
-# Description   Template Madlad Grapher Program
+# Filename      Madlad_Grapher.py
+# Description   Completed Madlad Grapher Program
 # _______	________
 
 import turtle           # Allows the use of the turtle
@@ -103,83 +103,79 @@ def draw_axis(grid_width, grid_height, tile_width):
 
     
 '''
-draws a point at the given (x,y) pair, scaled by the given tile_width
+draws a point at the given (grid_x, grid_y) pair
 '''
 def plot_point(grid_x, grid_y, grid_width, grid_height, tile_width, color, shape):
     # use the preexisting grid_turtle variable
     global grid_turtle
+        
+    # make sure we don't plot off the grid we drew
+    if (grid_x >= -grid_width and grid_x <= grid_width) and (grid_y >= -grid_height and grid_y <= grid_height):
+        # make sure pen is up
+        grid_turtle.penup()
 
-    # TODO: add input validation
-    xmin = -grid_width
-    xmax = grid_width
-    ymin = -grid_height
-    ymax = grid_height
+        # set colour and shape appropriately
+        grid_turtle.color(color)
+        grid_turtle.shape(shape)
 
-    
-    if grid_x < xmin or grid_x > xmax or grid_y < ymin or grid_y > xmax:
-        return
+        screen_x = grid_x * tile_width
+        screen_y = grid_y * tile_width
 
-    #if grid_x > xmin and grid_x < xmax and grid_y > ymin and grid_y < xmax:
-    # make sure pen is up
-    grid_turtle.penup()
-
-    # set colour and shape appropriately
-    grid_turtle.color(color)
-    grid_turtle.shape(shape)
-
-    screen_x = grid_x * tile_width
-    screen_y = grid_y * tile_width
-
-    # go to correct grid point and stamp turtle
-    grid_turtle.goto(screen_x, screen_y)
-    grid_turtle.stamp()
-
-
-    
+        # go to correct grid point and stamp turtle
+        grid_turtle.goto(screen_x, screen_y)
+        grid_turtle.stamp()
 
 '''
 opens a file for reading, and parses each line into an x,y pair, then returns the data
 '''
 def read_point_data(file_name):
-    f = open(file_name, 'r')
-    raw_data = f.readlines()
+    # declare an empty list to store all the data in
     data = []
-    for line in raw_data:
-        line = line.strip()
-        number_chars = line.split(",")
-        try:
-            x = int(number_chars[0])
-            y = int(number_chars[1])
-        except ValueError:
-            print("'" + str(number_chars) + "' was invalid")
-            continue
-        except IndexError:
-            print("Invalid line: " + line)
-            continue
 
+    try:
+        # open the file in reading mode
+        data_file = open(file_name, mode='r')
+    except IOError:
+        # file doesn't exist
+        print("File not found:", file_name)
+        # return empty data
+        return data
+
+    # read until the line is empty i.e. we've reached the end of file
+    line = data_file.readline()  
+    while line != "":
+        try:
+            # each line should be in the form "x,y" 
+            values = line.split(",")
             
-        data.append([x,y])
-    f.close()
+            # convert to int and add to list
+            data.append([float(values[0]), float(values[1])])
+        except ValueError:
+            # ValueError: One of the values wasn't a number
+            print("Invalid data line:", line)
+        except IndexError:            
+            # IndexError: Line is an incorrect format
+            print("Invalid data line:", line)
+
+        # read next line for the next iteration
+        line = data_file.readline()
+
+    # return parsed data
     return data
 
 '''
 plots all points located in the given file
 '''
 def plot_file_data(grid_width, grid_height, tile_width, file_name):
-    try:
-        data = read_point_data(file_name)
-    except FileNotFoundError:
-        print(f"'{file_name}' is not found")
-        return
+    # read data from the file
+    data = read_point_data(file_name)
 
+     # loop through each data point and plot it
     for point in data:
         grid_x = point[0]
         grid_y = point[1]
-        plot_point(grid_x, grid_y, grid_width, grid_height, tile_width, "purple", "turtle")
+        plot_point(grid_x, grid_y, grid_width, grid_height, tile_width, "orange", "circle")
 
-        
-        
-    
 
 # Main program starts here
 # ------------------------
@@ -198,15 +194,14 @@ if __name__ == '__main__':
     tile_width = 50
 
     # file to read plotting data out of
-    data_filename = "Data_Advancd.txt"
+    data_filename = "Data.txt"
 
     # draw grid
     draw_grid(grid_width, grid_height, tile_width)
 
-    # TODO: read data from file and plot it
-    
+    # plot data read from the file
     plot_file_data(grid_width, grid_height, tile_width, data_filename)
-    
+    plot_point(0.5, 0.5, 5,5, 50,"red", "turtle")
 
     # Draw all the code to the screen
     turtle_window.mainloop()
